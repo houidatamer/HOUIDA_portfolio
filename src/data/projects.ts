@@ -79,19 +79,19 @@ const featuredProjectsData: ProjectInput[] = [
       },
       {
         src: "/images/magix2.jpg",
-        url: "https://vimeo.com/1247030381?share=copy&fl=sv&fe=ci",
+        url: "https://vimeo.com/1247089142?fl=tl&fe=ec",
         title: "Magix",
         layout: "offset",
       },
       {
         src: "/images/taghazout.jpg",
-        url: "https://vimeo.com/1247030640?share=copy&fl=sv&fe=ci",
+        url: "https://vimeo.com/1247089225?fl=tl&fe=ecs",
         title: "Taghazout Bay",
         layout: "tall",
       },
       {
         src: "/images/cashplus.jpg",
-        url: "https://vimeo.com/1247030796?share=copy&fl=sv&fe=ci",
+        url: "https://vimeo.com/1247089513?fl=tl&fe=ec",
         title: "Cashplus",
         layout: "square",
       },
