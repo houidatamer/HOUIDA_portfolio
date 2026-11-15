@@ -85,7 +85,7 @@ const featuredProjectsData: ProjectInput[] = [
       },
       {
         src: "/images/taghazout.jpg",
-        url: "https://vimeo.com/1247089225?fl=tl&fe=ecs",
+        url: "https://vimeo.com/1247089225?fl=ip&fe=ec",
         title: "Taghazout Bay",
         layout: "tall",
       },
