@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { CreativeField } from "@/components/CreativeField";
+import { IntroSequence } from "@/components/IntroSequence";
+import { Header } from "@/components/Header";
 import { GalleryRow } from "@/components/GalleryRow";
 import { projects } from "@/data/projects";
 
@@ -13,13 +15,6 @@ export const Route = createFileRoute("/")({
         content:
           "Je construis des images, du premier plan à la dernière couleur. Art 3D, montage, étalonnage et motion design.",
       },
-      { property: "og:title", content: "Houida Tamer — Portfolio" },
-      {
-        property: "og:description",
-        content: "Je construis des images, du premier plan à la dernière couleur.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -48,9 +43,15 @@ function Index() {
   };
 
   return (
-    <main className="w-full bg-white text-foreground">
-      {/* Full-Bleed Pure White Hero + Interactive 4-Cluster Particle Field */}
-      <section className="grid-4 relative min-h-dvh md:h-dvh overflow-hidden bg-white pt-[74px] pb-6 md:pt-[84px] md:pb-8">
+    <main className="w-full bg-white text-foreground relative">
+      {/* Séquence d'intro conditionnelle */}
+      <IntroSequence onComplete={() => {}} />
+
+      {/* Header fixe global */}
+      <Header />
+
+      {/* Hero Section avec padding-top suffisant (pt-[96px]) */}
+      <section className="grid-4 relative min-h-dvh md:h-dvh overflow-hidden bg-white pt-[96px] pb-6 md:pb-8">
         <CreativeField activeCluster={activeCluster} onHoverCluster={setActiveCluster} />
 
         {/* Left Editorial Column */}
@@ -67,7 +68,6 @@ function Index() {
             du premier plan à la dernière couleur.
           </p>
 
-          {/* 4 Disciplines Table Synced with the 4 Particle Circles */}
           <div className="mt-8 md:mt-11 max-w-lg border-t border-foreground/15">
             {DISCIPLINES.map((item) => {
               const isActive = activeCluster === item.id;
@@ -113,7 +113,7 @@ function Index() {
         </div>
       </section>
 
-      {/* Pure White Horizontal Project Gallery Section */}
+      {/* Gallery Section */}
       <section
         ref={workRef}
         className="flex h-dvh flex-col justify-end overflow-hidden bg-white pb-6 md:pb-5"

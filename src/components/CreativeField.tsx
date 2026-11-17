@@ -62,9 +62,9 @@ export function CreativeField({
       tiltX: number,
       tiltY: number
     ) => {
-      const cosA = Math.cos(Math.PI / 4 + tiltX * 0.06);
-      const sinA = Math.sin(Math.PI / 4 + tiltX * 0.06);
-      const ySquash = 0.54 + tiltY * 0.04;
+      const cosA = Math.cos(Math.PI / 4 + tiltX * 0.05);
+      const sinA = Math.sin(Math.PI / 4 + tiltX * 0.05);
+      const ySquash = 0.52 + tiltY * 0.03;
 
       return (u: number, v: number, z = 0): [number, number] => {
         const rx = u * cosA - v * sinA;
@@ -89,12 +89,12 @@ export function CreativeField({
 
     const getLayoutMetrics = () => {
       const isMobile = width < 768;
-      const cx = isMobile ? width * 0.5 : width * 0.70;
+      const cx = isMobile ? width * 0.5 : width * 0.745;
       const stackCenterY = isMobile ? height * 0.74 : height * 0.51;
       const planeSize = isMobile
-        ? Math.min(width * 0.42, 175)
-        : Math.min(width * 0.235, height * 0.31, 290);
-      const layerGap = isMobile ? planeSize * 0.34 : planeSize * 0.37;
+        ? Math.min(width * 0.40, 165)
+        : Math.min(width * 0.215, height * 0.29, 255);
+      const layerGap = isMobile ? planeSize * 0.33 : planeSize * 0.36;
       return { isMobile, cx, stackCenterY, planeSize, layerGap };
     };
 
@@ -111,8 +111,7 @@ export function CreativeField({
 
         const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
         if (!isMobile) {
-          // Convert the pointer position back into the animation's unscaled coordinates.
-          const animationScale = 0.78;
+          const animationScale = 0.80;
           const hitX = cx + (x - cx) / animationScale;
           const hitY = stackCenterY + (y - stackCenterY) / animationScale;
           let found: number | null = null;
@@ -188,27 +187,30 @@ export function CreativeField({
       const t = (now - startTime) * 0.001;
       ctx.clearRect(0, 0, width, height);
 
-      pointer.nx += (pointer.tx - pointer.nx) * 0.06;
-      pointer.ny += (pointer.ty - pointer.ny) * 0.06;
+      pointer.nx += (pointer.tx - pointer.nx) * 0.05;
+      pointer.ny += (pointer.ty - pointer.ny) * 0.05;
 
       const activeId = activeRef.current ?? hoveredLayer;
       const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
 
-      // Uniformly scale the complete illustration around its existing center.
-      // This keeps every layer, label, line, dot and animation in proportion.
-      const animationScale = isMobile ? 0.86 : 0.78;
+      const animationScale = isMobile ? 0.88 : 0.80;
       ctx.save();
       ctx.translate(cx * (1 - animationScale), stackCenterY * (1 - animationScale));
       ctx.scale(animationScale, animationScale);
 
+      // CORRECTION DU SURVOL : Seules les couches situées AU-DESSUS de celle survolée s'écartent vers le haut
       for (let i = 0; i < 4; i++) {
-        let targetLift = Math.sin(t * 1.1 + i * 1.2) * 2.5;
+        let targetLift = Math.sin(t * 1.0 + i * 1.1) * 2;
         if (activeId !== null) {
-          if (i < activeId) targetLift += 18;
-          else if (i === activeId) targetLift += 10;
-          else targetLift -= 12;
+          if (i < activeId) {
+            // Les couches au-dessus de la couche active montent pour dégager la vue
+            targetLift += (activeId - i + 1) * 22;
+          } else {
+            // La couche active et celles en dessous restent immobiles ou baissent légèrement
+            targetLift -= 4;
+          }
         }
-        layerLift[i] += (targetLift - layerLift[i]!) * 0.1;
+        layerLift[i] += (targetLift - layerLift[i]!) * 0.12;
       }
 
       const topY = stackCenterY + (0 - 1.5) * layerGap - layerLift[0]!;
@@ -240,6 +242,7 @@ export function CreativeField({
         ctx.stroke();
       }
 
+      // RESTAURATION DES COTES TECHNIQUES & 1PX
       if (!isMobile) {
         ctx.setLineDash([]);
         ctx.font = '400 10px "Inter Tight", system-ui, sans-serif';
@@ -252,7 +255,7 @@ export function CreativeField({
         ctx.moveTo(leftPt[0] - 16, leftPt[1]);
         ctx.lineTo(leftPt[0] - 4, leftPt[1]);
         ctx.stroke();
-        ctx.fillText("1px", leftPt[0] - 36, leftPt[1]);
+        ctx.fillText("2560px", leftPt[0] - 36, leftPt[1]);
 
         const midLeftPt = getIsoProjector(
           cx,
@@ -265,14 +268,14 @@ export function CreativeField({
         ctx.moveTo(midLeftPt[0] - 16, midLeftPt[1]);
         ctx.lineTo(midLeftPt[0] - 4, midLeftPt[1]);
         ctx.stroke();
-        ctx.fillText("1px", midLeftPt[0] - 36, midLeftPt[1]);
+        ctx.fillText("1440px", midLeftPt[0] - 36, midLeftPt[1]);
 
         const botLeftPt = projBot(-1, 1);
         ctx.beginPath();
         ctx.moveTo(botLeftPt[0] - 16, botLeftPt[1]);
         ctx.lineTo(botLeftPt[0] - 4, botLeftPt[1]);
         ctx.stroke();
-        ctx.fillText("1px", botLeftPt[0] - 36, botLeftPt[1]);
+        ctx.fillText("1920px", botLeftPt[0] - 36, botLeftPt[1]);
 
         const rightPt = projTop(1, -1);
         ctx.beginPath();
@@ -286,13 +289,13 @@ export function CreativeField({
         ctx.moveTo(botRightPt[0] + 4, botRightPt[1]);
         ctx.lineTo(botRightPt[0] + 18, botRightPt[1]);
         ctx.stroke();
-        ctx.fillText("1px", botRightPt[0] + 22, botRightPt[1]);
+        ctx.fillText("1080px", botRightPt[0] + 22, botRightPt[1]);
 
         const apexPt = projTop(-1, -1);
-        ctx.fillText("1px", apexPt[0] + 10, apexPt[1] - 12);
+        ctx.fillText("3840px", apexPt[0] + 10, apexPt[1] - 12);
 
         const nadirPt = projBot(1, 1);
-        ctx.fillText("1px", nadirPt[0] - 10, nadirPt[1] + 22);
+        ctx.fillText("2160px", nadirPt[0] - 10, nadirPt[1] + 22);
       }
       ctx.restore();
 
@@ -333,20 +336,20 @@ export function CreativeField({
 
         ctx.clip();
 
-        // --- LAYER 0 (TOP): ÉTALONNAGE (Color Wheels & Sliders) ---
+        // --- LAYER 0: ÉTALONNAGE (Roues RGB espacées, non-mushées + Sliders longs) ---
         if (idx === 0) {
           const wheelCenters: [number, number, number][] = [
-            [-0.45, -0.42, 0.34],
-            [0.25, -0.42, 0.34],
-            [-0.45, 0.36, 0.34],
+            [-0.52, -0.32, 0.28], // Roue gauche
+            [0.52, -0.32, 0.28],  // Roue droite
+            [0.0, 0.28, 0.30],    // Roue centrale inférieure
           ];
 
           for (let w = 0; w < wheelCenters.length; w++) {
             const [wu, wv, wr] = wheelCenters[w]!;
-            const segs = 24;
+            const segs = 28;
             for (let s = 0; s < segs; s++) {
-              const a0 = (s / segs) * Math.PI * 2 + t * 0.25;
-              const a1 = ((s + 1) / segs) * Math.PI * 2 + t * 0.25;
+              const a0 = (s / segs) * Math.PI * 2 + t * 0.2;
+              const a1 = ((s + 1) / segs) * Math.PI * 2 + t * 0.2;
               const hue = (s / segs) * 360;
               const cPt = proj(wu, wv);
               const pA = proj(wu + Math.cos(a0) * wr, wv + Math.sin(a0) * wr);
@@ -357,7 +360,7 @@ export function CreativeField({
               ctx.lineTo(pA[0], pA[1]);
               ctx.lineTo(pB[0], pB[1]);
               ctx.closePath();
-              ctx.fillStyle = `hsla(${hue}, 68%, 56%, ${0.42 * alphaMult})`;
+              ctx.fillStyle = `hsla(${hue}, 70%, 58%, ${0.44 * alphaMult})`;
               ctx.fill();
             }
 
@@ -369,35 +372,36 @@ export function CreativeField({
               if (s === 0) ctx.moveTo(pt[0], pt[1]);
               else ctx.lineTo(pt[0], pt[1]);
             }
-            ctx.strokeStyle = `rgba(17, 17, 17, ${0.45 * alphaMult})`;
+            ctx.strokeStyle = `rgba(17, 17, 17, ${0.42 * alphaMult})`;
             ctx.lineWidth = 0.75;
             ctx.stroke();
 
             const dotPt = proj(
-              wu + Math.cos(t * 0.9 + w) * wr * 0.32,
-              wv + Math.sin(t * 0.9 + w) * wr * 0.32
+              wu + Math.cos(t * 0.9 + w) * wr * 0.35,
+              wv + Math.sin(t * 0.9 + w) * wr * 0.35
             );
             ctx.beginPath();
             ctx.arc(dotPt[0], dotPt[1], 2.2, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(17, 17, 17, ${0.85 * alphaMult})`;
+            ctx.fillStyle = `rgba(17, 17, 17, ${0.88 * alphaMult})`;
             ctx.fill();
           }
 
-          const sliderRows = [0.15, 0.34, 0.53, 0.72];
+          // Sliders RGB longs et élégants
+          const sliderRows = [0.12, 0.35, 0.58, 0.80];
           const sliderColors = ["#ef4444", "#22c55e", "#3b82f6", "#111111"];
           sliderRows.forEach((sv, rIdx) => {
-            const pStart = proj(0.05, sv);
+            const pStart = proj(-0.84, sv);
             const pEnd = proj(0.84, sv);
             ctx.beginPath();
             ctx.moveTo(pStart[0], pStart[1]);
             ctx.lineTo(pEnd[0], pEnd[1]);
             ctx.strokeStyle = sliderColors[rIdx]!;
-            ctx.globalAlpha = 0.55 * alphaMult;
+            ctx.globalAlpha = 0.58 * alphaMult;
             ctx.lineWidth = 1.3;
             ctx.stroke();
             ctx.globalAlpha = 1;
 
-            const knobU = 0.45 + Math.sin(t * 1.1 + rIdx * 1.4) * 0.25;
+            const knobU = 0.35 + Math.sin(t * 1.1 + rIdx * 1.4) * 0.35;
             const pKnob = proj(knobU, sv);
             ctx.beginPath();
             ctx.arc(pKnob[0], pKnob[1], 2.3, 0, Math.PI * 2);
@@ -554,7 +558,7 @@ export function CreativeField({
           }
         }
 
-        // --- LAYER 3 (BOTTOM): ART 3D (3D Undulating Point-Cloud Terrain Mesh + X/Y/Z Gizmo) ---
+        // --- LAYER 3 (BOTTOM): ART 3D (3D Terrain Mesh + X/Y/Z Gizmo) ---
         if (idx === 3) {
           const GRID = 13;
           const step = 1.72 / (GRID - 1);
@@ -578,7 +582,6 @@ export function CreativeField({
             gridPts.push(row);
           }
 
-          // Subtle base floor reference grid
           ctx.strokeStyle = `rgba(17, 17, 17, ${0.07 * alphaMult})`;
           ctx.lineWidth = 0.5;
           for (let i = 0; i < GRID; i += 2) {
@@ -593,7 +596,6 @@ export function CreativeField({
             ctx.stroke();
           }
 
-          // Vertical elevation stems on peaks
           for (let r = 1; r < GRID - 1; r += 2) {
             for (let c = 1; c < GRID - 1; c += 2) {
               const cell = gridPts[r]![c]!;
@@ -610,7 +612,6 @@ export function CreativeField({
             }
           }
 
-          // 3D surface wireframe isolines (U & V)
           for (let r = 0; r < GRID; r++) {
             ctx.beginPath();
             for (let c = 0; c < GRID; c++) {
@@ -635,7 +636,6 @@ export function CreativeField({
             ctx.stroke();
           }
 
-          // 3D point-cloud vertices scaled by Z elevation
           for (let r = 0; r < GRID; r++) {
             for (let c = 0; c < GRID; c++) {
               const pt = gridPts[r]![c]!;
@@ -650,7 +650,6 @@ export function CreativeField({
             }
           }
 
-          // Blender-style 3D X/Y/Z axis gizmo in the visible front corner
           const origin = proj(0.58, 0.58, 0);
           const xAxis = proj(0.84, 0.58, 0);
           const yAxis = proj(0.58, 0.84, 0);

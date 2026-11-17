@@ -34,8 +34,8 @@ export function Header() {
 
   return (
     <>
-      <div className="fixed inset-x-0 top-0 z-50 h-1 bg-brand" />
-      <header className="grid-4 fixed inset-x-0 top-1 z-40 items-start pt-4 ui-text">
+      <div className="fixed inset-x-0 top-0 z-[60] h-1 bg-brand" />
+      <header className="grid-4 fixed inset-x-0 top-1 z-50 items-center bg-white px-4 md:px-8 py-4 ui-text border-b border-foreground/10">
         <Link to="/" className="block w-max">
           Houida
           <br />
@@ -67,8 +67,8 @@ export function Header() {
             </div>
           )}
         </nav>
-        <div className="hidden md:flex justify-between">
-          <div>
+        <div className="hidden md:flex justify-end">
+          <div className="text-right">
             Local time
             <br />
             {t ? (
