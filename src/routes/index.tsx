@@ -44,66 +44,69 @@ function Index() {
 
   return (
     <main className="w-full bg-white text-foreground relative">
-      {/* Intro sequence (plays once) */}
+      {/* Intro sequence */}
       <IntroSequence onComplete={() => {}} />
 
       {/* Header */}
       <Header />
 
       {/* Hero Section */}
-      <section className="grid-4 relative min-h-dvh md:h-dvh overflow-hidden bg-white pt-[96px] pb-6 md:pb-8">
-        <CreativeField activeCluster={activeCluster} onHoverCluster={setActiveCluster} />
-
+      <section className="grid-4 relative h-auto overflow-x-hidden bg-white pt-[140px] pb-4 flex flex-col md:grid md:grid-cols-4 md:items-stretch">
         {/* Left Editorial Column */}
-        <div className="relative z-10 col-span-2 flex flex-col justify-center py-6 md:py-0">
-          <h1 className="font-display font-extrabold italic text-[clamp(3.2rem,7.2vw,7rem)] leading-[0.92] tracking-[-0.03em] text-foreground">
-            Houida
-            <br />
-            Tamer
-          </h1>
+        <div className="relative z-20 col-span-2 flex flex-col justify-center py-4 md:py-0 pl-6 md:pl-12 bg-white md:bg-transparent order-1">
+          <div className="w-full max-w-[500px]">
+            <h1 className="font-display font-extrabold italic text-[clamp(3.4rem,7.2vw,7.8rem)] leading-[0.9] tracking-[-0.03em] text-foreground">
+              Houida
+              <br />
+              Tamer
+            </h1>
 
-          <p className="mt-6 md:mt-8 max-w-md text-[clamp(1.15rem,1.6vw,1.6rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
-            Je construis des images,
-            <br />
-            du premier plan à la dernière couleur.
-          </p>
+            <p className="mt-6 md:mt-9 text-[clamp(1.2rem,1.65vw,1.7rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
+              Je construis des images,
+              <br />
+              du premier plan à la dernière couleur.
+            </p>
 
-          {/* 4 Disciplines Table (Enlarged items) */}
-          <div className="mt-8 md:mt-11 max-w-lg border-t border-foreground/15">
-            {DISCIPLINES.map((item) => {
-              const isActive = activeCluster === item.id;
-              return (
-                <div
-                  key={item.id}
-                  onMouseEnter={() => setActiveCluster(item.id)}
-                  onMouseLeave={() => setActiveCluster(null)}
-                  className="grid grid-cols-[150px_1fr] md:grid-cols-[185px_1fr] items-center border-b border-foreground/15 py-3.5 transition-opacity duration-200 cursor-default"
-                >
-                  <div className="flex items-center gap-3">
+            {/* 4 Disciplines Table */}
+            <div className="mt-8 md:mt-11 w-full border-t border-foreground/15">
+              {DISCIPLINES.map((item) => {
+                const isActive = activeCluster === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    onMouseEnter={() => setActiveCluster(item.id)}
+                    onMouseLeave={() => setActiveCluster(null)}
+                    className="grid grid-cols-[150px_1fr] md:grid-cols-[180px_1fr] items-center border-b border-foreground/15 py-3 md:py-3.5 transition-opacity duration-200 cursor-default"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`h-2 w-2 rounded-full transition-transform duration-200 ${
+                          isActive ? "scale-150 bg-foreground" : "bg-foreground/70"
+                        }`}
+                      />
+                      <span className="text-[15px] md:text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                        {item.title}
+                      </span>
+                    </div>
                     <span
-                      className={`h-2 w-2 rounded-full transition-transform duration-200 ${
-                        isActive ? "scale-150 bg-foreground" : "bg-foreground/70"
+                      className={`text-[13px] md:text-[14px] transition-colors duration-200 ${
+                        isActive ? "text-foreground" : "text-muted-foreground"
                       }`}
-                    />
-                    <span className="text-[14px] md:text-[15px] font-medium tracking-[-0.01em] text-foreground">
-                      {item.title}
+                    >
+                      {item.desc}
                     </span>
                   </div>
-                  <span
-                    className={`text-[13px] md:text-[14px] transition-colors duration-200 ${
-                      isActive ? "text-foreground" : "text-muted-foreground"
-                    }`}
-                  >
-                    {item.desc}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
 
+        {/* Creative Field Canvas */}
+        <CreativeField activeCluster={activeCluster} onHoverCluster={setActiveCluster} />
+
         {/* Full-Width Bottom Bar */}
-        <div className="relative z-10 col-span-2 md:col-span-4 mt-auto flex items-center justify-between border-t border-foreground/15 pt-4">
+        <div className="relative z-25 col-span-2 md:col-span-4 mt-6 md:mt-8 flex items-center justify-between border-t border-foreground/15 pt-3 pb-2 px-4 md:px-8 bg-white order-3">
           <button
             onClick={scrollToWork}
             className="ui-text cursor-pointer uppercase transition-opacity hover:opacity-60"
@@ -117,7 +120,7 @@ function Index() {
       {/* Gallery Section */}
       <section
         ref={workRef}
-        className="flex h-dvh flex-col justify-end overflow-hidden bg-white pb-6 md:pb-5"
+        className="flex h-auto md:h-dvh flex-col justify-center overflow-hidden bg-white pb-6 md:pb-5 pt-8 md:pt-0"
       >
         <GalleryRow ready={true} />
         <p className="ui-text px-4 pt-3 text-muted-foreground md:hidden">Swipe →</p>

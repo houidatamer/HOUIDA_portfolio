@@ -89,14 +89,12 @@ export function CreativeField({
 
     const getLayoutMetrics = () => {
       const isMobile = width < 768;
-      // Poussé plus à droite pour s'aligner exactement avec la fin de "LOCAL TIME"
       const cx = isMobile ? width * 0.5 : width * 0.78;
-      const stackCenterY = isMobile ? height * 0.74 : height * 0.49;
-      // Taille augmentée mais sécurisée pour ne pas toucher la ligne du bas
+      const stackCenterY = isMobile ? height * 0.42 : height * 0.49;
       const planeSize = isMobile
-        ? Math.min(width * 0.42, 175)
+        ? Math.min(width * 0.38, 140)
         : Math.min(width * 0.24, height * 0.32, 285);
-      const layerGap = isMobile ? planeSize * 0.33 : planeSize * 0.35;
+      const layerGap = isMobile ? planeSize * 0.28 : planeSize * 0.35;
       return { isMobile, cx, stackCenterY, planeSize, layerGap };
     };
 
@@ -195,7 +193,7 @@ export function CreativeField({
       const activeId = activeRef.current ?? hoveredLayer;
       const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
 
-      const animationScale = isMobile ? 0.88 : 0.82;
+      const animationScale = isMobile ? 0.82 : 0.82;
       ctx.save();
       ctx.translate(cx * (1 - animationScale), stackCenterY * (1 - animationScale));
       ctx.scale(animationScale, animationScale);
@@ -711,7 +709,7 @@ export function CreativeField({
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 h-full w-full"
+      className="pointer-events-none md:absolute md:inset-0 h-[190px] md:h-full w-full max-w-full relative order-2 md:order-none my-1 md:my-0 box-border px-4"
     />
   );
 }
