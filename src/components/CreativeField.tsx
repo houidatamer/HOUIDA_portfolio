@@ -111,6 +111,10 @@ export function CreativeField({
 
         const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
         if (!isMobile) {
+          // Convert the pointer position back into the animation's unscaled coordinates.
+          const animationScale = 0.78;
+          const hitX = cx + (x - cx) / animationScale;
+          const hitY = stackCenterY + (y - stackCenterY) / animationScale;
           let found: number | null = null;
           for (let idx = 0; idx < 4; idx++) {
             const baseY = stackCenterY + (idx - 1.5) * layerGap - layerLift[idx]!;
@@ -121,7 +125,7 @@ export function CreativeField({
               proj(1, 1),
               proj(-1, 1),
             ];
-            if (pointInPoly(x, y, quad)) {
+            if (pointInPoly(hitX, hitY, quad)) {
               found = idx;
               break;
             }
@@ -189,6 +193,13 @@ export function CreativeField({
 
       const activeId = activeRef.current ?? hoveredLayer;
       const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
+
+      // Uniformly scale the complete illustration around its existing center.
+      // This keeps every layer, label, line, dot and animation in proportion.
+      const animationScale = isMobile ? 0.86 : 0.78;
+      ctx.save();
+      ctx.translate(cx * (1 - animationScale), stackCenterY * (1 - animationScale));
+      ctx.scale(animationScale, animationScale);
 
       for (let i = 0; i < 4; i++) {
         let targetLift = Math.sin(t * 1.1 + i * 1.2) * 2.5;
@@ -690,6 +701,7 @@ export function CreativeField({
         }
       }
 
+      ctx.restore();
       animationFrameId = requestAnimationFrame(render);
     };
 
