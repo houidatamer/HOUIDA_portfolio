@@ -119,15 +119,15 @@ function ProjectPage() {
 
   return (
     <main>
-      <section className="grid-4 relative min-h-screen md:h-screen pt-[75px] pb-6 items-stretch">
-        <div className="col-span-2 flex flex-col justify-between pt-6 md:pt-12 md:pr-8 order-2 md:order-1">
+      <section className="grid-4 relative min-h-dvh md:h-screen pt-[68px] md:pt-[75px] pb-6 items-stretch">
+        <div className="col-span-2 flex flex-col justify-between pt-5 md:pt-12 md:pr-8 order-2 md:order-1">
           <div>
             <h1 ref={title} className="title-xl overflow-hidden pb-[0.08em]">
               <span className="block">{p.name}</span>
             </h1>
             <button
               onClick={goBack}
-              className="ui-text mt-5 block cursor-pointer uppercase transition-opacity hover:opacity-60"
+              className="ui-text mt-4 md:mt-5 block cursor-pointer uppercase transition-opacity hover:opacity-60"
             >
               ← Index
             </button>
@@ -135,11 +135,11 @@ function ProjectPage() {
 
           <div
             ref={meta}
-            className="ui-text mt-12 md:mt-0 grid grid-cols-2 gap-[var(--margin)] items-end leading-none"
+            className="ui-text mt-8 md:mt-0 grid grid-cols-2 gap-[var(--margin)] items-end leading-snug"
           >
             <p className="space-y-1">
               <span className="block">{p.client}</span>
-              <span className="block text-muted-foreground">{p.year}</span>
+              {p.year && <span className="block text-muted-foreground">{p.year}</span>}
             </p>
             <p className="space-y-1">
               <span className="block">{p.role[0]}</span>
@@ -148,7 +148,7 @@ function ProjectPage() {
           </div>
         </div>
 
-        <div className="col-span-2 h-[52vh] md:h-full order-1 md:order-2">
+        <div className="col-span-2 h-[42dvh] sm:h-[48dvh] md:h-full order-1 md:order-2">
           <div ref={imgWrap} className="h-full w-full overflow-hidden will-change-transform">
             <img
               src={p.cover}
@@ -160,17 +160,25 @@ function ProjectPage() {
         </div>
       </section>
 
-      <section className="grid-4 py-16 md:py-32">
-        <p className="ui-text col-span-2 md:col-span-1 mb-4 md:mb-0">About</p>
-        <p className="col-span-2 md:col-span-2 text-[clamp(1.25rem,2.2vw,2.2rem)] leading-[1.18] tracking-[-0.02em]">
+      <section className="grid-4 py-12 md:py-32">
+        <p className="ui-text col-span-2 md:col-span-1 mb-3 md:mb-0 text-muted-foreground md:text-foreground">
+          About
+        </p>
+        <p className="col-span-2 md:col-span-2 text-[clamp(1.15rem,4.5vw,2.2rem)] leading-[1.24] tracking-[-0.02em]">
           {p.intro}
         </p>
       </section>
 
       {p.vimeoGrid && p.vimeoGrid.length > 0 ? (
-        <section className="grid-4 gap-y-12 pb-16 md:pb-32">
+        <section className="grid-4 gap-y-8 md:gap-y-12 pb-14 md:pb-32">
           {p.vimeoGrid.map((item, i) => {
-            const isHalfCol = item.aspect === "portrait" || item.aspect === "square";
+            const colClass =
+              item.aspect === "portrait"
+                ? "col-span-1"
+                : item.aspect === "square"
+                  ? "col-span-2 md:col-span-1"
+                  : "col-span-2";
+
             const aspectClass =
               item.aspect === "portrait"
                 ? "aspect-[9/16]"
@@ -184,7 +192,7 @@ function ProjectPage() {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${isHalfCol ? "col-span-1" : "col-span-2"} group block`}
+                className={`${colClass} group block`}
               >
                 <div className={`${aspectClass} w-full overflow-hidden bg-black/5`}>
                   <img
@@ -194,10 +202,10 @@ function ProjectPage() {
                     className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                 </div>
-                <div className="ui-text mt-2.5 flex items-center justify-between">
-                  <span>{item.title || `0${i + 1}`}</span>
-                  <span className="text-muted-foreground transition-opacity group-hover:opacity-60">
-                     ↗
+                <div className="ui-text mt-2 flex items-center justify-between gap-2">
+                  <span className="truncate">{item.title || `0${i + 1}`}</span>
+                  <span className="shrink-0 text-muted-foreground transition-opacity group-hover:opacity-60">
+                    ↗
                   </span>
                 </div>
               </a>
@@ -205,7 +213,7 @@ function ProjectPage() {
           })}
         </section>
       ) : (
-        <section className="grid-4 gap-y-[var(--margin)] pb-16 md:pb-32">
+        <section className="grid-4 gap-y-[var(--margin)] pb-14 md:pb-32">
           {p.images.map((src, i) => (
             <div
               key={src}

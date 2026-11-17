@@ -8,9 +8,15 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Houida Tamer — Creative Director" },
-      { name: "description", content: "Selected work in art direction, campaigns and digital design by Houida Tamer." },
+      {
+        name: "description",
+        content: "Selected work in art direction, campaigns and digital design by Houida Tamer.",
+      },
       { property: "og:title", content: "Houida Tamer — Creative Director" },
-      { property: "og:description", content: "Selected work in art direction, campaigns and digital design." },
+      {
+        property: "og:description",
+        content: "Selected work in art direction, campaigns and digital design.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -25,7 +31,6 @@ function Index() {
     setIntro(false);
   }, []);
 
-  // Warm the cache for the project pages' hero images
   useEffect(() => {
     projects.forEach((p) => {
       const im = new Image();
@@ -34,9 +39,10 @@ function Index() {
   }, []);
 
   return (
-    <main className="flex h-screen flex-col justify-end overflow-hidden pb-5">
+    <main className="flex h-dvh flex-col justify-end overflow-hidden pb-6 md:pb-5">
       {intro && <Intro onDone={done} />}
       <GalleryRow ready={!intro} />
+      <p className="ui-text px-4 pt-3 text-muted-foreground md:hidden">Swipe →</p>
     </main>
   );
 }

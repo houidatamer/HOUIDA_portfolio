@@ -6,9 +6,15 @@ import { back, galleryState, galleryProjects, transition } from "@/data/projects
 export function GalleryRow({ ready }: { ready: boolean }) {
   const viewport = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
-  const busy = useRef(false); // true while an intro/return animation is running
+  const busy = useRef(false);
+  const dragging = useRef(false);
   const [hover, setHover] = useState<number | null>(null);
+  const [isTouch, setIsTouch] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setIsTouch(window.matchMedia("(hover: none)").matches);
+  }, []);
 
   // Restore scroll + play the return or reveal animation
   useLayoutEffect(() => {
@@ -36,7 +42,6 @@ export function GalleryRow({ ready }: { ready: boolean }) {
 
     const ctx = gsap.context(() => {
       if (isReturn && rect && target) {
-        // ---------- Return from a project page ----------
         vp.style.overflow = "visible";
         if (main) main.style.overflow = "visible";
 
@@ -91,7 +96,6 @@ export function GalleryRow({ ready }: { ready: boolean }) {
           0.5
         );
       } else {
-        // ---------- First load: the deal ----------
         const labels = tr.querySelectorAll("p");
         const boxes = [...cards].map((c) => c.querySelector<HTMLElement>("[data-box]")!);
         const introH = Math.min(window.innerHeight * 0.52, 460);
@@ -102,7 +106,6 @@ export function GalleryRow({ ready }: { ready: boolean }) {
         vp.style.overflow = "visible";
         if (main) main.style.overflow = "visible";
         gsap.set(labels, { opacity: 0 });
-
         gsap.set(overlays, { xPercent: 0 });
 
         cards.forEach((card, i) => {
@@ -188,26 +191,92 @@ export function GalleryRow({ ready }: { ready: boolean }) {
     };
   }, [ready]);
 
-  // Wheel -> horizontal scroll
+  // Wheel + Touch swipe -> horizontal scroll with inertia
   useEffect(() => {
     const vp = viewport.current!,
       tr = track.current!;
     const setX = gsap.quickTo(tr, "x", { duration: 1.1, ease: "power3.out" });
+
+    const clampX = (val: number) => {
+      const max = Math.max(0, tr.scrollWidth - vp.clientWidth);
+      return Math.min(max, Math.max(0, val));
+    };
+
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (busy.current) return;
       const mult = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
       const d = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * mult;
-      const max = Math.max(0, tr.scrollWidth - vp.clientWidth);
-      galleryState.x = Math.min(max, Math.max(0, galleryState.x + d));
+      galleryState.x = clampX(galleryState.x + d);
       setX(-galleryState.x);
     };
+
+    let startX = 0;
+    let startScroll = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let velocity = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (busy.current || e.touches.length !== 1) return;
+      gsap.killTweensOf(tr);
+      startX = e.touches[0]!.clientX;
+      lastX = startX;
+      lastTime = performance.now();
+      startScroll = galleryState.x;
+      velocity = 0;
+      dragging.current = false;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (busy.current || e.touches.length !== 1) return;
+      const x = e.touches[0]!.clientX;
+      const dx = startX - x;
+      if (Math.abs(dx) > 6) {
+        dragging.current = true;
+      }
+      if (dragging.current) {
+        e.preventDefault();
+        const now = performance.now();
+        const dt = Math.max(1, now - lastTime);
+        velocity = (lastX - x) / dt;
+        lastX = x;
+        lastTime = now;
+
+        galleryState.x = clampX(startScroll + dx);
+        gsap.set(tr, { x: -galleryState.x });
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (!dragging.current) return;
+      const momentum = velocity * 260;
+      galleryState.x = clampX(galleryState.x + momentum);
+      gsap.to(tr, {
+        x: -galleryState.x,
+        duration: 0.85,
+        ease: "power3.out",
+      });
+      setTimeout(() => {
+        dragging.current = false;
+      }, 60);
+    };
+
     window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
+    vp.addEventListener("touchstart", onTouchStart, { passive: true });
+    vp.addEventListener("touchmove", onTouchMove, { passive: false });
+    vp.addEventListener("touchend", onTouchEnd);
+
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      vp.removeEventListener("touchstart", onTouchStart);
+      vp.removeEventListener("touchmove", onTouchMove);
+      vp.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
   const open = (i: number, box: HTMLElement) => {
-    if (busy.current) return;
+    if (busy.current || dragging.current) return;
     busy.current = true;
 
     transition.rect = box.getBoundingClientRect();
@@ -215,47 +284,54 @@ export function GalleryRow({ ready }: { ready: boolean }) {
   };
 
   return (
-    <div ref={viewport} className="w-full overflow-hidden">
-      {/* pl-6 pr-10 adds the margin to show background color before the first card and after the last card */}
-      <div ref={track} className="flex w-max gap-[10px] pl-6 pr-10 will-change-transform">
-        {galleryProjects.map((p, i) => (
-          <button
-            key={p.slug}
-            data-i={i}
-            data-slug={p.slug}
-            onMouseEnter={() => setHover(i)}
-            onMouseLeave={() => setHover(null)}
-            onClick={(e) => open(i, e.currentTarget.querySelector<HTMLElement>("[data-box]")!)}
-            className="block shrink-0 cursor-pointer text-left"
-          >
-            <p className="ui-text mb-3">{p.name}</p>
-            <div
-              data-box
-              className="relative h-[clamp(320px,64vh,660px)] overflow-hidden bg-background transition-[filter] duration-500"
-              style={{
-                aspectRatio: `${p.w} / 660`,
-                filter:
-                  hover === i
-                    ? "grayscale(0%)"
-                    : hover !== null
-                      ? "grayscale(70%) opacity(0.4)"
-                      : "grayscale(70%)",
-              }}
+    <div ref={viewport} className="w-full overflow-hidden touch-pan-x">
+      <div
+        ref={track}
+        className="flex w-max gap-[10px] pl-4 pr-6 md:pl-6 md:pr-10 will-change-transform"
+      >
+        {galleryProjects.map((p, i) => {
+          const filterStyle = isTouch
+            ? "grayscale(0%)"
+            : hover === i
+              ? "grayscale(0%)"
+              : hover !== null
+                ? "grayscale(70%) opacity(0.4)"
+                : "grayscale(70%)";
+
+          return (
+            <button
+              key={p.slug}
+              data-i={i}
+              data-slug={p.slug}
+              onMouseEnter={() => !isTouch && setHover(i)}
+              onMouseLeave={() => !isTouch && setHover(null)}
+              onClick={(e) => open(i, e.currentTarget.querySelector<HTMLElement>("[data-box]")!)}
+              className="block shrink-0 cursor-pointer text-left"
             >
-              <img
-                src={p.cover}
-                alt={p.name}
-                className="h-full w-full object-cover"
-                style={{ objectPosition: p.coverPosition || "center" }}
-                draggable={false}
-              />
+              <p className="ui-text mb-2.5 md:mb-3">{p.name}</p>
               <div
-                data-overlay
-                className="pointer-events-none absolute inset-0 z-10 bg-neutral-900/45 backdrop-grayscale-[40%] will-change-transform"
-              />
-            </div>
-          </button>
-        ))}
+                data-box
+                className="relative h-[56dvh] sm:h-[60dvh] md:h-[clamp(320px,64vh,660px)] overflow-hidden bg-background transition-[filter] duration-500"
+                style={{
+                  aspectRatio: `${p.w} / 660`,
+                  filter: filterStyle,
+                }}
+              >
+                <img
+                  src={p.cover}
+                  alt={p.name}
+                  className="h-full w-full object-cover"
+                  style={{ objectPosition: p.coverPosition || "center" }}
+                  draggable={false}
+                />
+                <div
+                  data-overlay
+                  className="pointer-events-none absolute inset-0 z-10 bg-neutral-900/45 backdrop-grayscale-[40%] will-change-transform"
+                />
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
