@@ -1,21 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CreativeField } from "@/components/CreativeField";
 import { GalleryRow } from "@/components/GalleryRow";
-import { Intro } from "@/components/Intro";
-import { galleryState, projects } from "@/data/projects";
+import { projects } from "@/data/projects";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Houida Tamer — Creative Director" },
+      { title: "Houida Tamer — Artiste 3D, Monteur, Étalonneur & Motion Designer" },
       {
         name: "description",
-        content: "Selected work in art direction, campaigns and digital design by Houida Tamer.",
+        content:
+          "Je construis des images, du premier plan à la dernière couleur. Art 3D, montage, étalonnage et motion design.",
       },
-      { property: "og:title", content: "Houida Tamer — Creative Director" },
+      { property: "og:title", content: "Houida Tamer — Portfolio" },
       {
         property: "og:description",
-        content: "Selected work in art direction, campaigns and digital design.",
+        content: "Je construis des images, du premier plan à la dernière couleur.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -24,12 +25,16 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+const DISCIPLINES = [
+  { id: 0, title: "Étalonnage", desc: "Look, ambiance, finition" },
+  { id: 1, title: "Montage", desc: "Rythme, narration, cohérence" },
+  { id: 2, title: "Motion design", desc: "Animation, identité en mouvement" },
+  { id: 3, title: "Art 3D", desc: "Modélisation, texturing, rendu" },
+];
+
 function Index() {
-  const [intro, setIntro] = useState(!galleryState.introPlayed);
-  const done = useCallback(() => {
-    galleryState.introPlayed = true;
-    setIntro(false);
-  }, []);
+  const workRef = useRef<HTMLElement>(null);
+  const [activeCluster, setActiveCluster] = useState<number | null>(null);
 
   useEffect(() => {
     projects.forEach((p) => {
@@ -38,11 +43,84 @@ function Index() {
     });
   }, []);
 
+  const scrollToWork = () => {
+    workRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <main className="flex h-dvh flex-col justify-end overflow-hidden pb-6 md:pb-5">
-      {intro && <Intro onDone={done} />}
-      <GalleryRow ready={!intro} />
-      <p className="ui-text px-4 pt-3 text-muted-foreground md:hidden">Swipe →</p>
+    <main className="w-full bg-white text-foreground">
+      {/* Full-Bleed Pure White Hero + Interactive 4-Cluster Particle Field */}
+      <section className="grid-4 relative min-h-dvh md:h-dvh overflow-hidden bg-white pt-[74px] pb-6 md:pt-[84px] md:pb-8">
+        <CreativeField activeCluster={activeCluster} onHoverCluster={setActiveCluster} />
+
+        {/* Left Editorial Column */}
+        <div className="relative z-10 col-span-2 flex flex-col justify-center py-6 md:py-0">
+          <h1 className="font-display font-extrabold italic text-[clamp(3.2rem,7.2vw,7rem)] leading-[0.92] tracking-[-0.03em] text-foreground">
+            Houida
+            <br />
+            Tamer
+          </h1>
+
+          <p className="mt-6 md:mt-8 max-w-md text-[clamp(1.1rem,1.5vw,1.5rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
+            Je construis des images,
+            <br />
+            du premier plan à la dernière couleur.
+          </p>
+
+          {/* 4 Disciplines Table Synced with the 4 Particle Circles */}
+          <div className="mt-8 md:mt-11 max-w-lg border-t border-foreground/15">
+            {DISCIPLINES.map((item) => {
+              const isActive = activeCluster === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onMouseEnter={() => setActiveCluster(item.id)}
+                  onMouseLeave={() => setActiveCluster(null)}
+                  className="grid grid-cols-[140px_1fr] md:grid-cols-[170px_1fr] items-center border-b border-foreground/15 py-3 transition-opacity duration-200 cursor-default"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full transition-transform duration-200 ${
+                        isActive ? "scale-150 bg-foreground" : "bg-foreground/70"
+                      }`}
+                    />
+                    <span className="text-[13px] md:text-[14px] font-medium tracking-[-0.01em] text-foreground">
+                      {item.title}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[12px] md:text-[13px] transition-colors duration-200 ${
+                      isActive ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Full-Width Bottom Bar */}
+        <div className="relative z-10 col-span-2 md:col-span-4 mt-auto flex items-center justify-between border-t border-foreground/15 pt-4">
+          <button
+            onClick={scrollToWork}
+            className="ui-text cursor-pointer uppercase transition-opacity hover:opacity-60"
+          >
+            Voir les projets ↓
+          </button>
+          <span className="ui-text text-muted-foreground">Scroll</span>
+        </div>
+      </section>
+
+      {/* Pure White Horizontal Project Gallery Section */}
+      <section
+        ref={workRef}
+        className="flex h-dvh flex-col justify-end overflow-hidden bg-white pb-6 md:pb-5"
+      >
+        <GalleryRow ready={true} />
+        <p className="ui-text px-4 pt-3 text-muted-foreground md:hidden">Swipe →</p>
+      </section>
     </main>
   );
 }

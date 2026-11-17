@@ -1,76 +1,126 @@
-import { useLayoutEffect, useRef } from "react";
-import gsap from "gsap";
-import { introFrame, galleryProjects } from "@/data/projects";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { CreativeField } from "@/components/CreativeField";
+import { GalleryRow } from "@/components/GalleryRow";
+import { projects } from "@/data/projects";
 
-/** First-load loader: swipe through covers in one frame, then the gallery deals the deck. */
-export function Intro({ onDone }: { onDone: () => void }) {
-  const root = useRef<HTMLDivElement>(null);
-  // Reverse the 5 featured cards so the first one lands on top
-  const deck = [...galleryProjects].reverse();
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Houida Tamer — Artiste 3D, Monteur, Étalonneur & Motion Designer" },
+      {
+        name: "description",
+        content:
+          "Je construis des images, du premier plan à la dernière couleur. Art 3D, montage, étalonnage et motion design.",
+      },
+      { property: "og:title", content: "Houida Tamer — Portfolio" },
+      {
+        property: "og:description",
+        content: "Je construis des images, du premier plan à la dernière couleur.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Index,
+});
 
-  useLayoutEffect(() => {
-    let cancelled = false;
-    let ctx: gsap.Context | undefined;
+const DISCIPLINES = [
+  { id: 0, title: "Art 3D", desc: "Modélisation, texturing, rendu" },
+  { id: 1, title: "Montage", desc: "Rythme, narration, cohérence" },
+  { id: 2, title: "Étalonnage", desc: "Look, ambiance, finition" },
+  { id: 3, title: "Motion design", desc: "Animation, identité en mouvement" },
+];
 
-    const imgs = Array.from(root.current!.querySelectorAll("img"));
-    const decoded = Promise.all(imgs.map((im) => im.decode().catch(() => undefined)));
-    const timeout = new Promise((r) => setTimeout(r, 3000));
+function Index() {
+  const workRef = useRef<HTMLElement>(null);
+  const [activeCluster, setActiveCluster] = useState<number | null>(null);
 
-    Promise.race([decoded, timeout]).then(() => {
-      if (cancelled) return;
-      ctx = gsap.context(() => {
-        const cards = gsap.utils.toArray<HTMLElement>("[data-card]");
-        const counter = root.current!.querySelector("[data-count]")!;
-        const tl = gsap.timeline({ onComplete: onDone });
-        const total = 2;
-        const swipe = Math.min(0.35, total / Math.max(cards.length, 1));
-
-        gsap.set(cards, { xPercent: 100, opacity: 1 });
-        gsap.set(cards[0]!, { xPercent: 0 });
-
-        cards.forEach((card, i) => {
-          if (i === 0) return;
-          const t = (i / cards.length) * total;
-          tl.to(cards[i - 1]!, { xPercent: -100, duration: swipe, ease: "power2.inOut" }, t);
-          tl.fromTo(card, { xPercent: 100 }, { xPercent: 0, duration: swipe, ease: "power2.inOut" }, t);
-        });
-
-        tl.to(counter, { textContent: 100, snap: { textContent: 1 }, duration: total, ease: "none" }, 0);
-        tl.to({}, { duration: 0.08 });
-      }, root);
+  useEffect(() => {
+    projects.forEach((p) => {
+      const im = new Image();
+      im.src = p.cover;
     });
+  }, []);
 
-    return () => {
-      cancelled = true;
-      ctx?.revert();
-    };
-  }, [onDone]);
+  const scrollToWork = () => {
+    workRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
-    <div
-      ref={root}
-      className="fixed inset-0 z-30 flex items-center justify-center overflow-hidden bg-background pointer-events-none"
-    >
-      <div
-        className="relative overflow-hidden"
-        style={{ height: introFrame.height, aspectRatio: `${introFrame.ratio}` }}
+    <main className="w-full bg-white text-foreground">
+      {/* Full-Bleed Pure White Hero + Live Exploded Isometric Pipeline */}
+      <section className="grid-4 relative min-h-dvh md:h-dvh overflow-hidden bg-white pt-[74px] pb-6 md:pt-[84px] md:pb-8">
+        <CreativeField activeCluster={activeCluster} onHoverCluster={setActiveCluster} />
+
+        {/* Left Editorial Column */}
+        <div className="relative z-10 col-span-2 flex flex-col justify-center py-6 md:py-0">
+          <h1 className="font-display font-extrabold italic text-[clamp(3.2rem,7.2vw,7rem)] leading-[0.92] tracking-[-0.03em] text-foreground">
+            Houida
+            <br />
+            Tamer
+          </h1>
+
+          <p className="mt-6 md:mt-8 max-w-md text-[clamp(1.1rem,1.5vw,1.5rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
+            Je construis des images,
+            <br />
+            du premier plan à la dernière couleur.
+          </p>
+
+          {/* 4 Disciplines Table Synced with the 4 Isometric Layers */}
+          <div className="mt-8 md:mt-11 max-w-lg border-t border-foreground/15 bg-white/80 backdrop-blur-[2px]">
+            {DISCIPLINES.map((item) => {
+              const isActive = activeCluster === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onMouseEnter={() => setActiveCluster(item.id)}
+                  onMouseLeave={() => setActiveCluster(null)}
+                  className="grid grid-cols-[140px_1fr] md:grid-cols-[170px_1fr] items-center border-b border-foreground/15 py-3 transition-opacity duration-200 cursor-default"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full transition-transform duration-200 ${
+                        isActive ? "scale-150 bg-foreground" : "bg-foreground/70"
+                      }`}
+                    />
+                    <span className="text-[13px] md:text-[14px] font-medium tracking-[-0.01em] text-foreground">
+                      {item.title}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[12px] md:text-[13px] transition-colors duration-200 ${
+                      isActive ? "text-foreground" : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.desc}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Full-Width Bottom Bar */}
+        <div className="relative z-10 col-span-2 md:col-span-4 mt-auto flex items-center justify-between border-t border-foreground/15 pt-4 bg-white/90">
+          <button
+            onClick={scrollToWork}
+            className="ui-text cursor-pointer uppercase transition-opacity hover:opacity-60"
+          >
+            Voir les projets ↓
+          </button>
+          <span className="ui-text text-muted-foreground">Scroll</span>
+        </div>
+      </section>
+
+      {/* Pure White Horizontal Project Gallery Section */}
+      <section
+        ref={workRef}
+        className="flex h-dvh flex-col justify-end overflow-hidden bg-white pb-6 md:pb-5"
       >
-        {deck.map((p) => (
-          <img
-            key={p.slug}
-            data-card
-            src={p.cover}
-            alt=""
-            style={{ opacity: 0, objectPosition: p.coverPosition || "center" }}
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-        ))}
-        {/* Grey overlay sitting on cards during shuffle */}
-        <div className="pointer-events-none absolute inset-0 z-10 bg-neutral-900/45 backdrop-grayscale-[40%]" />
-      </div>
-      <span data-count className="ui-text absolute bottom-5 left-5">
-        0
-      </span>
-    </div>
+        <GalleryRow ready={true} />
+        <p className="ui-text px-4 pt-3 text-muted-foreground md:hidden">Swipe →</p>
+      </section>
+    </main>
   );
 }

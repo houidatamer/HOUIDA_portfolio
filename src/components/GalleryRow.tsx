@@ -16,19 +16,12 @@ export function GalleryRow({ ready }: { ready: boolean }) {
     setIsTouch(window.matchMedia("(hover: none)").matches);
   }, []);
 
-  // Restore scroll + play the return or reveal animation
   useLayoutEffect(() => {
     const tr = track.current!;
     const vp = viewport.current!;
-    const main = vp.closest("main") as HTMLElement | null;
+    const section = vp.closest("section") as HTMLElement | null;
     gsap.set(tr, { x: -galleryState.x });
     const cards = tr.querySelectorAll<HTMLElement>("[data-i]");
-    const overlays = tr.querySelectorAll<HTMLElement>("[data-overlay]");
-
-    if (!ready) {
-      gsap.set(cards, { opacity: 0 });
-      return;
-    }
 
     const { rect, slug } = back;
     const target = slug ? tr.querySelector<HTMLElement>(`[data-slug="${slug}"]`) : null;
@@ -36,16 +29,17 @@ export function GalleryRow({ ready }: { ready: boolean }) {
     if (!isReturn) {
       back.rect = null;
       back.slug = null;
+      gsap.set(cards, { clearProps: "opacity,transform,zIndex,position" });
+      return;
     }
 
     busy.current = true;
 
     const ctx = gsap.context(() => {
-      if (isReturn && rect && target) {
+      if (rect && target) {
+        if (section) section.scrollIntoView({ behavior: "instant" as ScrollBehavior });
         vp.style.overflow = "visible";
-        if (main) main.style.overflow = "visible";
-
-        gsap.set(overlays, { xPercent: 100 });
+        if (section) section.style.overflow = "visible";
 
         const box = target.querySelector<HTMLElement>("[data-box]")!;
         const to = box.getBoundingClientRect();
@@ -61,7 +55,7 @@ export function GalleryRow({ ready }: { ready: boolean }) {
             gsap.set(target, { clearProps: "zIndex,position" });
             gsap.set(box, { clearProps: "transform,transformOrigin" });
             vp.style.overflow = "";
-            if (main) main.style.overflow = "";
+            if (section) section.style.overflow = "";
             busy.current = false;
             back.rect = null;
             back.slug = null;
@@ -95,106 +89,21 @@ export function GalleryRow({ ready }: { ready: boolean }) {
           { opacity: 1, duration: 0.6, ease: "power2.out" },
           0.5
         );
-      } else {
-        const labels = tr.querySelectorAll("p");
-        const boxes = [...cards].map((c) => c.querySelector<HTMLElement>("[data-box]")!);
-        const introH = Math.min(window.innerHeight * 0.52, 460);
-        const introW = introH * (4 / 5);
-        const cx = window.innerWidth / 2;
-        const cy = window.innerHeight / 2;
-
-        vp.style.overflow = "visible";
-        if (main) main.style.overflow = "visible";
-        gsap.set(labels, { opacity: 0 });
-        gsap.set(overlays, { xPercent: 0 });
-
-        cards.forEach((card, i) => {
-          gsap.set(card, {
-            opacity: i === 0 ? 1 : 0,
-            zIndex: cards.length - i,
-            position: "relative",
-          });
-        });
-
-        boxes.forEach((box, i) => {
-          const r = box.getBoundingClientRect();
-          const sx = introW / r.width;
-          const sy = introH / r.height;
-
-          gsap.set(box, {
-            x: cx - (r.left + r.width / 2),
-            y: cy - (r.top + r.height / 2),
-            rotation: 0,
-            scaleX: i === 0 ? sx : sx * 0.92,
-            scaleY: i === 0 ? sy : sy * 0.92,
-            transformOrigin: "center center",
-            willChange: "transform",
-            force3D: true,
-          });
-        });
-
-        const tl = gsap.timeline({
-          onComplete: () => {
-            gsap.set(cards, { clearProps: "zIndex,position,opacity" });
-            gsap.set(boxes, { clearProps: "transform,willChange,transformOrigin" });
-            vp.style.overflow = "";
-            if (main) main.style.overflow = "";
-            busy.current = false;
-          },
-        });
-
-        boxes.forEach((box, i) => {
-          const delay = i * 0.07;
-          const overlay = overlays[i]!;
-
-          if (i > 0) {
-            tl.set(cards[i]!, { opacity: 1 }, delay);
-          }
-
-          tl.to(
-            box,
-            {
-              x: 0,
-              y: 0,
-              scaleX: 1,
-              scaleY: 1,
-              duration: 1.3,
-              ease: "power3.inOut",
-            },
-            delay
-          );
-
-          tl.to(
-            overlay,
-            {
-              xPercent: 100,
-              duration: 0.85,
-              ease: "power3.inOut",
-            },
-            delay + 0.25
-          );
-        });
-
-        tl.to(
-          labels,
-          { opacity: 1, duration: 0.5, stagger: 0.04, ease: "power2.out" },
-          ">-0.7"
-        );
       }
     });
 
     return () => {
       ctx.revert();
       vp.style.overflow = "";
-      if (main) main.style.overflow = "";
+      if (section) section.style.overflow = "";
       busy.current = false;
     };
   }, [ready]);
 
-  // Wheel + Touch swipe -> horizontal scroll with inertia
   useEffect(() => {
     const vp = viewport.current!,
       tr = track.current!;
+    const section = vp.closest("section") as HTMLElement | null;
     const setX = gsap.quickTo(tr, "x", { duration: 1.1, ease: "power3.out" });
 
     const clampX = (val: number) => {
@@ -203,12 +112,23 @@ export function GalleryRow({ ready }: { ready: boolean }) {
     };
 
     const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      if (busy.current) return;
+      if (busy.current || !section) return;
+      const rect = section.getBoundingClientRect();
+      if (rect.top > 10) return;
+
       const mult = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1;
       const d = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * mult;
-      galleryState.x = clampX(galleryState.x + d);
-      setX(-galleryState.x);
+      const max = Math.max(0, tr.scrollWidth - vp.clientWidth);
+
+      if (d < 0 && galleryState.x <= 0 && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) {
+        return;
+      }
+
+      if (max > 0) {
+        e.preventDefault();
+        galleryState.x = clampX(galleryState.x + d);
+        setX(-galleryState.x);
+      }
     };
 
     let startX = 0;
@@ -323,10 +243,6 @@ export function GalleryRow({ ready }: { ready: boolean }) {
                   className="h-full w-full object-cover"
                   style={{ objectPosition: p.coverPosition || "center" }}
                   draggable={false}
-                />
-                <div
-                  data-overlay
-                  className="pointer-events-none absolute inset-0 z-10 bg-neutral-900/45 backdrop-grayscale-[40%] will-change-transform"
                 />
               </div>
             </button>
