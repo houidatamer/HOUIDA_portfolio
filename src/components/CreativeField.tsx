@@ -641,30 +641,7 @@ export function CreativeField({
             }
           }
 
-          const origin = proj(0.58, 0.58, 0);
-          const xAxis = proj(0.84, 0.58, 0);
-          const yAxis = proj(0.58, 0.84, 0);
-          const zAxis = proj(0.58, 0.58, planeSize * 0.14);
-
-          const axes: { end: [number, number]; label: string }[] = [
-            { end: xAxis, label: "X" },
-            { end: yAxis, label: "Y" },
-            { end: zAxis, label: "Z" },
-          ];
-
-          ctx.font = '500 8.5px "Inter Tight", system-ui, sans-serif';
-          ctx.textBaseline = "middle";
-          for (const ax of axes) {
-            ctx.beginPath();
-            ctx.moveTo(origin[0], origin[1]);
-            ctx.lineTo(ax.end[0], ax.end[1]);
-            ctx.strokeStyle = `rgba(17, 17, 17, ${0.75 * alphaMult})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            ctx.fillStyle = `rgba(17, 17, 17, ${0.85 * alphaMult})`;
-            ctx.fillText(ax.label, ax.end[0] + 3, ax.end[1] - 2);
-          }
+         
         }
 
         ctx.restore();
