@@ -32,6 +32,7 @@ function ProjectPage() {
   const { project: p } = Route.useLoaderData();
   const imgWrap = useRef<HTMLDivElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
+  const about = useRef<HTMLDivElement>(null);
   const meta = useRef<HTMLDivElement>(null);
   const initialFromRef = useRef<DOMRect | null>(null);
 
@@ -84,10 +85,11 @@ function ProjectPage() {
         ease: "expo.out",
         delay: from ? 0.55 : 0.2,
       });
-      gsap.from(meta.current, {
+      gsap.from([about.current, meta.current], {
         opacity: 0,
         duration: 0.6,
-        delay: from ? 0.8 : 0.4,
+        stagger: 0.08,
+        delay: from ? 0.75 : 0.35,
       });
     });
 
@@ -111,7 +113,7 @@ function ProjectPage() {
       });
     }
     tl.to(title.current!.children, { yPercent: 110, duration: 0.5, ease: "expo.in" }).to(
-      meta.current,
+      [about.current, meta.current],
       { opacity: 0, duration: 0.3 },
       "<"
     );
@@ -119,8 +121,8 @@ function ProjectPage() {
 
   return (
     <main>
-      <section className="grid-4 relative min-h-dvh md:h-screen pt-[68px] md:pt-[75px] pb-6 items-stretch">
-        <div className="col-span-2 flex flex-col justify-between pt-5 md:pt-12 md:pr-8 order-2 md:order-1">
+      <section className="grid-4 relative min-h-dvh md:h-screen pt-[68px] md:pt-[75px] pb-6 md:pb-8 items-stretch">
+        <div className="col-span-2 flex flex-col justify-between pt-5 md:pt-8 md:pr-4 order-2 md:order-1">
           <div>
             <h1 ref={title} className="title-xl overflow-hidden pb-[0.08em]">
               <span className="block">{p.name}</span>
@@ -133,9 +135,16 @@ function ProjectPage() {
             </button>
           </div>
 
+          <div ref={about} className="my-8 md:my-auto py-4 -ml-[0.03em] md:max-w-[78%]">
+            <p className="ui-text mb-3 text-muted-foreground">About</p>
+            <p className="font-about italic uppercase text-[clamp(1.35rem,2.55vw,2.75rem)] leading-[1.24] tracking-[-0.015em]">
+              {p.intro}
+            </p>
+          </div>
+
           <div
             ref={meta}
-            className="ui-text mt-8 md:mt-0 grid grid-cols-2 gap-[var(--margin)] items-end leading-snug"
+            className="ui-text grid grid-cols-2 gap-[var(--margin)] items-end leading-snug"
           >
             <p className="space-y-1">
               <span className="block">{p.client}</span>
@@ -160,17 +169,12 @@ function ProjectPage() {
         </div>
       </section>
 
-      <section className="grid-4 py-12 md:py-32">
-        <p className="ui-text col-span-2 md:col-span-1 mb-3 md:mb-0 text-muted-foreground md:text-foreground">
-          About
-        </p>
-        <p className="col-span-2 md:col-span-2 text-[clamp(1.15rem,4.5vw,2.2rem)] leading-[1.24] tracking-[-0.02em]">
-          {p.intro}
-        </p>
-      </section>
+      <div className="px-[var(--margin)]">
+        <div className="h-px w-full bg-foreground/20" />
+      </div>
 
       {p.vimeoGrid && p.vimeoGrid.length > 0 ? (
-        <section className="grid-4 gap-y-8 md:gap-y-12 pb-14 md:pb-32">
+        <section className="grid-4 gap-y-8 md:gap-y-12 pt-8 md:pt-12 pb-14 md:pb-32">
           {p.vimeoGrid.map((item, i) => {
             const colClass =
               item.aspect === "portrait"
@@ -202,18 +206,25 @@ function ProjectPage() {
                     className="h-full w-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                 </div>
-                <div className="ui-text mt-2 flex items-center justify-between gap-2">
-                  <span className="truncate">{item.title || `0${i + 1}`}</span>
-                  <span className="shrink-0 text-muted-foreground transition-opacity group-hover:opacity-60">
-                    ↗
-                  </span>
+                <div className="mt-2">
+                  <div className="ui-text flex items-center justify-between gap-2">
+                    <span className="truncate">{item.title || `0${i + 1}`}</span>
+                    <span className="shrink-0 text-muted-foreground transition-opacity group-hover:opacity-60">
+                      ↗
+                    </span>
+                  </div>
+                  {item.role && (
+                    <p className="mt-0.5 text-[11px] md:text-[12px] italic text-muted-foreground leading-snug">
+                      {item.role}
+                    </p>
+                  )}
                 </div>
               </a>
             );
           })}
         </section>
       ) : (
-        <section className="grid-4 gap-y-[var(--margin)] pb-14 md:pb-32">
+        <section className="grid-4 gap-y-[var(--margin)] pt-8 md:pt-12 pb-14 md:pb-32">
           {p.images.map((src, i) => (
             <div
               key={src}
