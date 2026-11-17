@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { CreativeField } from "@/components/CreativeField";
 import { IntroSequence } from "@/components/IntroSequence";
-import { Header } from "@/components/Header";
 import { GalleryRow } from "@/components/GalleryRow";
 import { projects } from "@/data/projects";
 
@@ -47,28 +46,25 @@ function Index() {
       {/* Intro sequence */}
       <IntroSequence onComplete={() => {}} />
 
-      {/* Header */}
-      <Header />
-
       {/* Hero Section */}
-      <section className="grid-4 relative h-auto overflow-x-hidden bg-white pt-[140px] pb-4 flex flex-col md:grid md:grid-cols-4 md:items-stretch">
+      <section className="grid-4 relative max-md:!h-auto max-md:!max-h-none max-md:!overflow-visible overflow-x-hidden bg-white pt-[115px] md:pt-[120px] pb-4 md:pb-2 flex flex-col justify-start md:grid md:grid-cols-4 md:items-end">
         {/* Left Editorial Column */}
-        <div className="relative z-20 col-span-2 flex flex-col justify-center py-4 md:py-0 pl-6 md:pl-12 bg-white md:bg-transparent order-1">
+        <div className="relative z-20 col-span-2 flex flex-col justify-start md:justify-end py-2 md:py-0 px-4 md:pl-12 md:pb-[28px] bg-white md:bg-transparent order-1">
           <div className="w-full max-w-[500px]">
-            <h1 className="font-display font-extrabold italic text-[clamp(3.4rem,7.2vw,7.8rem)] leading-[0.9] tracking-[-0.03em] text-foreground">
-              Houida
+            <h1 className="font-display font-extrabold italic text-[clamp(3rem,7.2vw,7.8rem)] leading-[0.9] tracking-[-0.03em] text-foreground">
+              Visual
               <br />
-              Tamer
+              Storyteller
             </h1>
 
-            <p className="mt-6 md:mt-9 text-[clamp(1.2rem,1.65vw,1.7rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
+            <p className="mt-4 md:mt-7 text-[clamp(1.05rem,1.65vw,1.7rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
               Je construis des images,
               <br />
               du premier plan à la dernière couleur.
             </p>
 
             {/* 4 Disciplines Table */}
-            <div className="mt-8 md:mt-11 w-full border-t border-foreground/15">
+            <div className="mt-5 md:mt-7 w-full border-t border-foreground/15">
               {DISCIPLINES.map((item) => {
                 const isActive = activeCluster === item.id;
                 return (
@@ -76,7 +72,7 @@ function Index() {
                     key={item.id}
                     onMouseEnter={() => setActiveCluster(item.id)}
                     onMouseLeave={() => setActiveCluster(null)}
-                    className="grid grid-cols-[150px_1fr] md:grid-cols-[180px_1fr] items-center border-b border-foreground/15 py-3 md:py-3.5 transition-opacity duration-200 cursor-default"
+                    className="grid grid-cols-[130px_1fr] md:grid-cols-[180px_1fr] items-center border-b border-foreground/15 py-2.5 md:py-3 transition-opacity duration-200 cursor-default"
                   >
                     <div className="flex items-center gap-3">
                       <span
@@ -84,12 +80,12 @@ function Index() {
                           isActive ? "scale-150 bg-foreground" : "bg-foreground/70"
                         }`}
                       />
-                      <span className="text-[15px] md:text-[16px] font-medium tracking-[-0.01em] text-foreground">
+                      <span className="text-[14px] md:text-[16px] font-medium tracking-[-0.01em] text-foreground">
                         {item.title}
                       </span>
                     </div>
                     <span
-                      className={`text-[13px] md:text-[14px] transition-colors duration-200 ${
+                      className={`text-[12px] md:text-[14px] transition-colors duration-200 ${
                         isActive ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
@@ -106,7 +102,7 @@ function Index() {
         <CreativeField activeCluster={activeCluster} onHoverCluster={setActiveCluster} />
 
         {/* Full-Width Bottom Bar */}
-        <div className="relative z-25 col-span-2 md:col-span-4 mt-6 md:mt-8 flex items-center justify-between border-t border-foreground/15 pt-3 pb-2 px-4 md:px-8 bg-white order-3">
+        <div className="relative z-25 col-span-2 md:col-span-4 mt-2 md:mt-4 flex items-center justify-between border-t border-foreground/15 pt-3 pb-2 px-4 md:px-8 bg-white order-3">
           <button
             onClick={scrollToWork}
             className="ui-text cursor-pointer uppercase transition-opacity hover:opacity-60"
@@ -120,7 +116,7 @@ function Index() {
       {/* Gallery Section */}
       <section
         ref={workRef}
-        className="flex h-auto md:h-dvh flex-col justify-center overflow-hidden bg-white pb-6 md:pb-5 pt-8 md:pt-0"
+        className="flex max-md:!h-auto md:h-dvh flex-col justify-start md:justify-center overflow-hidden bg-white pb-8 md:pb-5 pt-6 md:pt-0"
       >
         <GalleryRow ready={true} />
         <p className="ui-text px-4 pt-3 text-muted-foreground md:hidden">Swipe →</p>

@@ -89,12 +89,12 @@ export function CreativeField({
 
     const getLayoutMetrics = () => {
       const isMobile = width < 768;
-      const cx = isMobile ? width * 0.5 : width * 0.78;
-      const stackCenterY = isMobile ? height * 0.42 : height * 0.49;
+      const cx = isMobile ? width * 0.53 : width * 0.78;
+      const stackCenterY = isMobile ? height * 0.5 : height * 0.55;
       const planeSize = isMobile
-        ? Math.min(width * 0.38, 140)
+        ? Math.min(width * 0.29, 108)
         : Math.min(width * 0.24, height * 0.32, 285);
-      const layerGap = isMobile ? planeSize * 0.28 : planeSize * 0.35;
+      const layerGap = isMobile ? planeSize * 0.26 : planeSize * 0.35;
       return { isMobile, cx, stackCenterY, planeSize, layerGap };
     };
 
@@ -193,7 +193,7 @@ export function CreativeField({
       const activeId = activeRef.current ?? hoveredLayer;
       const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
 
-      const animationScale = isMobile ? 0.82 : 0.82;
+      const animationScale = isMobile ? 0.85 : 0.82;
       ctx.save();
       ctx.translate(cx * (1 - animationScale), stackCenterY * (1 - animationScale));
       ctx.scale(animationScale, animationScale);
@@ -334,14 +334,14 @@ export function CreativeField({
 
         if (idx === 0) {
           const wheelCenters: [number, number, number][] = [
-            [-0.52, -0.32, 0.28],
-            [0.52, -0.32, 0.28],
-            [0.0, 0.28, 0.30],
+            [-0.52, -0.42, 0.22],
+            [0.0, -0.42, 0.22],
+            [0.52, -0.42, 0.22],
           ];
 
           for (let w = 0; w < wheelCenters.length; w++) {
             const [wu, wv, wr] = wheelCenters[w]!;
-            const segs = 28;
+            const segs = 36;
             for (let s = 0; s < segs; s++) {
               const a0 = (s / segs) * Math.PI * 2 + t * 0.2;
               const a1 = ((s + 1) / segs) * Math.PI * 2 + t * 0.2;
@@ -359,7 +359,7 @@ export function CreativeField({
               ctx.fill();
             }
 
-            const ringPts = 28;
+            const ringPts = 36;
             ctx.beginPath();
             for (let s = 0; s <= ringPts; s++) {
               const a = (s / ringPts) * Math.PI * 2;
@@ -669,12 +669,12 @@ export function CreativeField({
 
         ctx.restore();
 
-        const labelSize = isMobile ? 10 : 12;
+        const labelSize = isMobile ? 9 : 12;
         drawIsoLabel(
           layerNames[idx]!,
           pBL,
           pBR,
-          14,
+          isMobile ? 10 : 14,
           labelSize,
           (isSelected ? 0.95 : 0.72) * alphaMult
         );
@@ -684,8 +684,8 @@ export function CreativeField({
             "Image Pipeline & Post-Production",
             pBL,
             pTL,
-            -12,
-            isMobile ? 9 : 11,
+            isMobile ? -8 : -12,
+            isMobile ? 8 : 11,
             0.78 * alphaMult
           );
         }
@@ -709,7 +709,7 @@ export function CreativeField({
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none md:absolute md:inset-0 h-[190px] md:h-full w-full max-w-full relative order-2 md:order-none my-1 md:my-0 box-border px-4"
+      className="pointer-events-none md:absolute md:inset-0 h-[250px] md:h-full w-full max-w-full relative order-2 md:order-none my-2 md:my-0 block"
     />
   );
 }
