@@ -44,13 +44,13 @@ function Index() {
 
   return (
     <main className="w-full bg-white text-foreground relative">
-      {/* Séquence d'intro conditionnelle */}
+      {/* Intro sequence (plays once) */}
       <IntroSequence onComplete={() => {}} />
 
-      {/* Header fixe global */}
+      {/* Header */}
       <Header />
 
-      {/* Hero Section avec padding-top suffisant (pt-[96px]) */}
+      {/* Hero Section */}
       <section className="grid-4 relative min-h-dvh md:h-dvh overflow-hidden bg-white pt-[96px] pb-6 md:pb-8">
         <CreativeField activeCluster={activeCluster} onHoverCluster={setActiveCluster} />
 
@@ -62,12 +62,13 @@ function Index() {
             Tamer
           </h1>
 
-          <p className="mt-6 md:mt-8 max-w-md text-[clamp(1.1rem,1.5vw,1.5rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
+          <p className="mt-6 md:mt-8 max-w-md text-[clamp(1.15rem,1.6vw,1.6rem)] leading-[1.35] tracking-[-0.015em] text-foreground">
             Je construis des images,
             <br />
             du premier plan à la dernière couleur.
           </p>
 
+          {/* 4 Disciplines Table (Enlarged items) */}
           <div className="mt-8 md:mt-11 max-w-lg border-t border-foreground/15">
             {DISCIPLINES.map((item) => {
               const isActive = activeCluster === item.id;
@@ -76,20 +77,20 @@ function Index() {
                   key={item.id}
                   onMouseEnter={() => setActiveCluster(item.id)}
                   onMouseLeave={() => setActiveCluster(null)}
-                  className="grid grid-cols-[140px_1fr] md:grid-cols-[170px_1fr] items-center border-b border-foreground/15 py-3 transition-opacity duration-200 cursor-default"
+                  className="grid grid-cols-[150px_1fr] md:grid-cols-[185px_1fr] items-center border-b border-foreground/15 py-3.5 transition-opacity duration-200 cursor-default"
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-3">
                     <span
-                      className={`h-1.5 w-1.5 rounded-full transition-transform duration-200 ${
+                      className={`h-2 w-2 rounded-full transition-transform duration-200 ${
                         isActive ? "scale-150 bg-foreground" : "bg-foreground/70"
                       }`}
                     />
-                    <span className="text-[13px] md:text-[14px] font-medium tracking-[-0.01em] text-foreground">
+                    <span className="text-[14px] md:text-[15px] font-medium tracking-[-0.01em] text-foreground">
                       {item.title}
                     </span>
                   </div>
                   <span
-                    className={`text-[12px] md:text-[13px] transition-colors duration-200 ${
+                    className={`text-[13px] md:text-[14px] transition-colors duration-200 ${
                       isActive ? "text-foreground" : "text-muted-foreground"
                     }`}
                   >

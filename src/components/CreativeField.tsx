@@ -89,12 +89,14 @@ export function CreativeField({
 
     const getLayoutMetrics = () => {
       const isMobile = width < 768;
-      const cx = isMobile ? width * 0.5 : width * 0.745;
-      const stackCenterY = isMobile ? height * 0.74 : height * 0.51;
+      // Poussé plus à droite pour s'aligner exactement avec la fin de "LOCAL TIME"
+      const cx = isMobile ? width * 0.5 : width * 0.78;
+      const stackCenterY = isMobile ? height * 0.74 : height * 0.49;
+      // Taille augmentée mais sécurisée pour ne pas toucher la ligne du bas
       const planeSize = isMobile
-        ? Math.min(width * 0.40, 165)
-        : Math.min(width * 0.215, height * 0.29, 255);
-      const layerGap = isMobile ? planeSize * 0.33 : planeSize * 0.36;
+        ? Math.min(width * 0.42, 175)
+        : Math.min(width * 0.24, height * 0.32, 285);
+      const layerGap = isMobile ? planeSize * 0.33 : planeSize * 0.35;
       return { isMobile, cx, stackCenterY, planeSize, layerGap };
     };
 
@@ -111,7 +113,7 @@ export function CreativeField({
 
         const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
         if (!isMobile) {
-          const animationScale = 0.80;
+          const animationScale = 0.82;
           const hitX = cx + (x - cx) / animationScale;
           const hitY = stackCenterY + (y - stackCenterY) / animationScale;
           let found: number | null = null;
@@ -193,20 +195,17 @@ export function CreativeField({
       const activeId = activeRef.current ?? hoveredLayer;
       const { isMobile, cx, stackCenterY, planeSize, layerGap } = getLayoutMetrics();
 
-      const animationScale = isMobile ? 0.88 : 0.80;
+      const animationScale = isMobile ? 0.88 : 0.82;
       ctx.save();
       ctx.translate(cx * (1 - animationScale), stackCenterY * (1 - animationScale));
       ctx.scale(animationScale, animationScale);
 
-      // CORRECTION DU SURVOL : Seules les couches situées AU-DESSUS de celle survolée s'écartent vers le haut
       for (let i = 0; i < 4; i++) {
         let targetLift = Math.sin(t * 1.0 + i * 1.1) * 2;
         if (activeId !== null) {
           if (i < activeId) {
-            // Les couches au-dessus de la couche active montent pour dégager la vue
             targetLift += (activeId - i + 1) * 22;
           } else {
-            // La couche active et celles en dessous restent immobiles ou baissent légèrement
             targetLift -= 4;
           }
         }
@@ -242,7 +241,6 @@ export function CreativeField({
         ctx.stroke();
       }
 
-      // RESTAURATION DES COTES TECHNIQUES & 1PX
       if (!isMobile) {
         ctx.setLineDash([]);
         ctx.font = '400 10px "Inter Tight", system-ui, sans-serif';
@@ -336,12 +334,11 @@ export function CreativeField({
 
         ctx.clip();
 
-        // --- LAYER 0: ÉTALONNAGE (Roues RGB espacées, non-mushées + Sliders longs) ---
         if (idx === 0) {
           const wheelCenters: [number, number, number][] = [
-            [-0.52, -0.32, 0.28], // Roue gauche
-            [0.52, -0.32, 0.28],  // Roue droite
-            [0.0, 0.28, 0.30],    // Roue centrale inférieure
+            [-0.52, -0.32, 0.28],
+            [0.52, -0.32, 0.28],
+            [0.0, 0.28, 0.30],
           ];
 
           for (let w = 0; w < wheelCenters.length; w++) {
@@ -386,7 +383,6 @@ export function CreativeField({
             ctx.fill();
           }
 
-          // Sliders RGB longs et élégants
           const sliderRows = [0.12, 0.35, 0.58, 0.80];
           const sliderColors = ["#ef4444", "#22c55e", "#3b82f6", "#111111"];
           sliderRows.forEach((sv, rIdx) => {
@@ -413,7 +409,6 @@ export function CreativeField({
           });
         }
 
-        // --- LAYER 1: MONTAGE (NLE Timeline, Filmstrip & Audio Waveforms) ---
         if (idx === 1) {
           const frames = [-0.82, -0.25, 0.32];
           frames.forEach((fu, fIdx) => {
@@ -482,7 +477,6 @@ export function CreativeField({
           ctx.stroke();
         }
 
-        // --- LAYER 2: MOTION DESIGN (Bezier Curves & Keyframe Handles) ---
         if (idx === 2) {
           ctx.strokeStyle = `rgba(17, 17, 17, ${0.09 * alphaMult})`;
           ctx.lineWidth = 0.6;
@@ -558,7 +552,6 @@ export function CreativeField({
           }
         }
 
-        // --- LAYER 3 (BOTTOM): ART 3D (3D Terrain Mesh + X/Y/Z Gizmo) ---
         if (idx === 3) {
           const GRID = 13;
           const step = 1.72 / (GRID - 1);
