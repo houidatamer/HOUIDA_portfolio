@@ -3,12 +3,21 @@ import { useNavigate } from "@tanstack/react-router";
 import gsap from "gsap";
 import { back, galleryState, galleryProjects, transition } from "@/data/projects";
 
-export function GalleryRow({ ready }: { ready: boolean }) {
+export function GalleryRow({
+  ready,
+  onReturnStateChange,
+}: {
+  ready: boolean;
+  onReturnStateChange?: (returning: boolean) => void;
+}) {
   const viewport = useRef<HTMLDivElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const busy = useRef(false);
   const dragging = useRef(false);
   const [hover, setHover] = useState<number | null>(null);
+  const [returningSlug, setReturningSlug] = useState<string | null>(() =>
+    back.rect && back.slug ? back.slug : null
+  );
   const [isTouch, setIsTouch] = useState(false);
   const navigate = useNavigate();
 
@@ -26,70 +35,102 @@ export function GalleryRow({ ready }: { ready: boolean }) {
     const { rect, slug } = back;
     const target = slug ? tr.querySelector<HTMLElement>(`[data-slug="${slug}"]`) : null;
     const isReturn = !!(rect && target);
+
     if (!isReturn) {
       back.rect = null;
       back.slug = null;
+      setReturningSlug(null);
+      onReturnStateChange?.(false);
       gsap.set(cards, { clearProps: "opacity,transform,zIndex,position" });
       return;
     }
 
     busy.current = true;
+    setReturningSlug(slug);
+    setHover(null);
+    onReturnStateChange?.(true);
+
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    const scrollToSection = () => {
+      if (section) {
+        const y = section.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: y, left: 0, behavior: "instant" as ScrollBehavior });
+      }
+    };
 
     const ctx = gsap.context(() => {
-      if (rect && target) {
-        if (section) section.scrollIntoView({ behavior: "instant" as ScrollBehavior });
-        vp.style.overflow = "visible";
-        if (section) section.style.overflow = "visible";
+      scrollToSection();
 
-        const box = target.querySelector<HTMLElement>("[data-box]")!;
-        const to = box.getBoundingClientRect();
-        const others = [...cards].filter((c) => c !== target);
+      vp.style.overflow = "visible";
+      if (section) section.style.overflow = "visible";
 
-        const scaleX = rect.width / to.width;
-        const scaleY = rect.height / to.height;
+      const box = target.querySelector<HTMLElement>("[data-box]")!;
+      const label = target.querySelector<HTMLElement>("[data-label]");
+      const to = box.getBoundingClientRect();
+      const others = [...cards].filter((c) => c !== target);
 
-        gsap.set(target, { zIndex: 50, position: "relative" });
+      const scaleX = rect.width / to.width;
+      const scaleY = rect.height / to.height;
+      const startX = rect.left - to.left;
+      const startY = rect.top - to.top;
 
-        const tl = gsap.timeline({
-          onComplete: () => {
-            gsap.set(target, { clearProps: "zIndex,position" });
-            gsap.set(box, { clearProps: "transform,transformOrigin" });
-            vp.style.overflow = "";
-            if (section) section.style.overflow = "";
-            busy.current = false;
-            back.rect = null;
-            back.slug = null;
-          },
-        });
+      gsap.set(target, { zIndex: 50, position: "relative" });
+      gsap.set(others, { opacity: 0 });
+      if (label) gsap.set(label, { opacity: 0 });
 
-        tl.fromTo(
-          box,
-          {
-            x: rect.left - to.left,
-            y: rect.top - to.top,
-            scaleX,
-            scaleY,
-            transformOrigin: "top left",
-            force3D: true,
-          },
-          {
-            x: 0,
-            y: 0,
-            scaleX: 1,
-            scaleY: 1,
-            duration: 1.1,
-            ease: "expo.inOut",
-          },
-          0
-        );
+      // Set starting transform synchronously before any paint so the image never flashes white
+      gsap.set(box, {
+        x: startX,
+        y: startY,
+        scaleX,
+        scaleY,
+        transformOrigin: "top left",
+        force3D: true,
+      });
 
-        tl.fromTo(
-          others,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6, ease: "power2.out" },
-          0.5
-        );
+      const rafId = requestAnimationFrame(scrollToSection);
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          cancelAnimationFrame(rafId);
+          gsap.set(target, { clearProps: "zIndex,position" });
+          gsap.set(box, { clearProps: "transform,transformOrigin" });
+          if (label) gsap.set(label, { clearProps: "opacity" });
+          gsap.set(others, { clearProps: "opacity" });
+          vp.style.overflow = "";
+          if (section) section.style.overflow = "";
+          busy.current = false;
+          back.rect = null;
+          back.slug = null;
+          setReturningSlug(null);
+          onReturnStateChange?.(false);
+        },
+      });
+
+      tl.to(
+        box,
+        {
+          x: 0,
+          y: 0,
+          scaleX: 1,
+          scaleY: 1,
+          duration: 1.0,
+          ease: "expo.inOut",
+          force3D: true,
+        },
+        0
+      );
+
+      tl.to(others, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.5);
+
+      if (label) {
+        tl.to(label, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.65);
       }
+
+      return () => cancelAnimationFrame(rafId);
     });
 
     return () => {
@@ -98,7 +139,7 @@ export function GalleryRow({ ready }: { ready: boolean }) {
       if (section) section.style.overflow = "";
       busy.current = false;
     };
-  }, [ready]);
+  }, [ready, onReturnStateChange]);
 
   useEffect(() => {
     const vp = viewport.current!,
@@ -203,6 +244,8 @@ export function GalleryRow({ ready }: { ready: boolean }) {
     navigate({ to: "/project/$slug", params: { slug: galleryProjects[i]!.slug } });
   };
 
+  const hasReturning = !!returningSlug;
+
   return (
     <div ref={viewport} className="w-full overflow-hidden touch-pan-x">
       <div
@@ -210,38 +253,53 @@ export function GalleryRow({ ready }: { ready: boolean }) {
         className="flex w-max gap-[10px] pl-4 pr-6 md:pl-6 md:pr-10 will-change-transform"
       >
         {galleryProjects.map((p, i) => {
-          const filterStyle = isTouch
-            ? "grayscale(0%)"
-            : hover === i
+          const isReturningCard = returningSlug === p.slug;
+          const filterStyle =
+            isTouch || isReturningCard
               ? "grayscale(0%)"
-              : hover !== null
-                ? "grayscale(70%) opacity(0.4)"
-                : "grayscale(70%)";
+              : hover === i
+                ? "grayscale(0%)"
+                : hover !== null
+                  ? "grayscale(70%) opacity(0.4)"
+                  : "grayscale(70%)";
 
           return (
             <button
               key={p.slug}
               data-i={i}
               data-slug={p.slug}
-              onMouseEnter={() => !isTouch && setHover(i)}
-              onMouseLeave={() => !isTouch && setHover(null)}
+              onMouseEnter={() => !isTouch && !busy.current && setHover(i)}
+              onMouseLeave={() => !isTouch && !busy.current && setHover(null)}
               onClick={(e) => open(i, e.currentTarget.querySelector<HTMLElement>("[data-box]")!)}
+              style={hasReturning && !isReturningCard ? { opacity: 0 } : undefined}
               className="block shrink-0 cursor-pointer text-left"
             >
-              <p className="ui-text mb-2.5 md:mb-3">{p.name}</p>
+              <p
+                data-label
+                style={isReturningCard ? { opacity: 0 } : undefined}
+                className="ui-text mb-2.5 md:mb-3"
+              >
+                {p.name}
+              </p>
               <div
                 data-box
-                className="relative h-[56dvh] sm:h-[60dvh] md:h-[clamp(320px,64vh,660px)] overflow-hidden bg-background transition-[filter] duration-500"
+                className={`relative h-[56dvh] sm:h-[60dvh] md:h-[clamp(320px,64vh,660px)] overflow-hidden bg-background ${
+                  isReturningCard ? "" : "transition-[filter] duration-500"
+                }`}
                 style={{
                   aspectRatio: `${p.w} / 660`,
                   filter: filterStyle,
+                  backfaceVisibility: "hidden",
                 }}
               >
                 <img
                   src={p.cover}
                   alt={p.name}
                   className="h-full w-full object-cover"
-                  style={{ objectPosition: p.coverPosition || "center" }}
+                  style={{
+                    objectPosition: p.coverPosition || "center",
+                    backfaceVisibility: "hidden",
+                  }}
                   draggable={false}
                 />
               </div>

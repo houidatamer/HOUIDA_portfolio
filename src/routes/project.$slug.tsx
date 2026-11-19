@@ -35,6 +35,7 @@ function ProjectPage() {
   const about = useRef<HTMLDivElement>(null);
   const meta = useRef<HTMLDivElement>(null);
   const initialFromRef = useRef<DOMRect | null>(null);
+  const navigatingBack = useRef(false);
 
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
@@ -67,7 +68,7 @@ function ProjectPage() {
             y: 0,
             scaleX: 1,
             scaleY: 1,
-            duration: 1.2,
+            duration: 1.1,
             ease: "expo.inOut",
             clearProps: "transform,transformOrigin",
             onComplete: () => {
@@ -94,27 +95,90 @@ function ProjectPage() {
     });
 
     return () => {
-      back.rect = el.getBoundingClientRect();
-      back.slug = p.slug;
       ctx.revert();
     };
   }, [p.slug]);
 
   const navigate = useNavigate();
   const goBack = () => {
-    const tl = gsap.timeline({ onComplete: () => navigate({ to: "/" }) });
+    if (navigatingBack.current) return;
+    navigatingBack.current = true;
+
+    const el = imgWrap.current;
+    let bridge: HTMLDivElement | null = null;
+
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        back.rect = rect;
+        back.slug = p.slug;
+
+        // Keep a solid bridge frame on screen during route unmount so there is zero white flash
+        bridge = document.createElement("div");
+        bridge.style.position = "fixed";
+        bridge.style.left = `${rect.left}px`;
+        bridge.style.top = `${rect.top}px`;
+        bridge.style.width = `${rect.width}px`;
+        bridge.style.height = `${rect.height}px`;
+        bridge.style.overflow = "hidden";
+        bridge.style.backgroundColor = "#ffffff";
+        bridge.style.zIndex = "9999";
+        bridge.style.pointerEvents = "none";
+        bridge.style.willChange = "transform, opacity";
+
+        const bridgeImg = document.createElement("img");
+        bridgeImg.src = p.cover;
+        bridgeImg.alt = p.name;
+        bridgeImg.style.width = "100%";
+        bridgeImg.style.height = "100%";
+        bridgeImg.style.objectFit = "cover";
+        bridgeImg.style.objectPosition = p.detailCoverPosition || p.coverPosition || "center";
+
+        bridge.appendChild(bridgeImg);
+        document.body.appendChild(bridge);
+      }
+    }
+
+    const cleanupBridge = () => {
+      if (bridge && bridge.parentNode) {
+        bridge.parentNode.removeChild(bridge);
+        bridge = null;
+      }
+    };
+
+    const finishNavigation = () => {
+      navigate({ to: "/" });
+      // Remove bridge shortly after GalleryRow's useLayoutEffect has painted the returning card
+      requestAnimationFrame(() => {
+        requestAnimationFrame(cleanupBridge);
+      });
+      setTimeout(cleanupBridge, 1200);
+    };
+
+    const tl = gsap.timeline({
+      onComplete: finishNavigation,
+    });
+
     const s = { y: window.scrollY };
     if (s.y > 0) {
       tl.to(s, {
         y: 0,
-        duration: Math.min(1.2, 0.4 + s.y / 3000),
+        duration: Math.min(0.6, 0.2 + s.y / 4000),
         ease: "power3.inOut",
-        onUpdate: () => window.scrollTo(0, s.y),
+        onUpdate: () => {
+          window.scrollTo(0, s.y);
+          if (bridge && el) {
+            const r = el.getBoundingClientRect();
+            bridge.style.left = `${r.left}px`;
+            bridge.style.top = `${r.top}px`;
+          }
+        },
       });
     }
-    tl.to(title.current!.children, { yPercent: 110, duration: 0.5, ease: "expo.in" }).to(
+
+    tl.to(title.current!.children, { yPercent: 110, duration: 0.35, ease: "expo.in" }).to(
       [about.current, meta.current],
-      { opacity: 0, duration: 0.3 },
+      { opacity: 0, duration: 0.2 },
       "<"
     );
   };

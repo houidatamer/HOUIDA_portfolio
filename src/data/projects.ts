@@ -40,7 +40,7 @@ const featuredProjectsData: ProjectInput[] = [
     year: "",
     role: ["Direction", "Editing & Color Grading"],
     intro:
-      "Une approche visuelle guidée par le rythme, l'ambiance et l'étalonnage, pour créer des univers immersifs au service des artistes d'aujourd'hui.",
+      "Le rythme du morceau dicte le montage. Direction, montage et étalonnage de clips, avec une image qui suit le son et une ambiance construite par la couleur.",
     cover: "/images/Don-big.jpg",
     coverPosition: "90% center",
     detailCoverPosition: "93% center",
@@ -70,7 +70,7 @@ const featuredProjectsData: ProjectInput[] = [
     year: "",
     role: ["Commercial", "Direction Artistique & Post-production"],
     intro:
-      "Production publicitaire alliant lumière cinéma, rythme de montage précis et post-production soignée, pensée pour la TV et le digital.",
+      "Une image de cinéma pour un format publicitaire. Direction artistique et post-production de films pour la télévision et le digital : lumière travaillée, montage précis, finitions soignées.",
     cover: "/images/royalairmaroc4.jpg",
     coverPosition: "center",
     detailCoverPosition: "center",
@@ -117,7 +117,7 @@ const featuredProjectsData: ProjectInput[] = [
     year: "",
     role: ["Cinema", "Narrative Visuel"],
     intro:
-      "Courts-métrages mêlant animation 3D, comédie dramatique et docu-fiction — une approche hybride où le rythme, la lumière et la mise en scène s'adaptent à chaque registre narratif.",
+      "Chaque histoire impose son propre traitement. Animation 3D, comédie dramatique, docufiction : le rythme, la lumière et la mise en scène s'adaptent à chaque registre.",
     cover: "/images/paulamovie2.jpg",
     coverPosition: "center",
     detailCoverPosition: "center",
@@ -147,7 +147,7 @@ const featuredProjectsData: ProjectInput[] = [
     year: "",
     role: ["Campagnes", "3D & Motion Design"],
     intro:
-      "Campagnes de marque expérimentales mêlant environnements 3D, motion design et effets visuels dynamiques, pensées pour capter immédiatement l'attention.",
+      "Capter l'attention dès la première seconde. Campagnes de marque en 3D, motion design et effets visuels, avec des formats courts et dynamiques.",
     cover: "/images/windows.png",
     coverPosition: "center",
     detailCoverPosition: "50% center",
@@ -191,7 +191,7 @@ const featuredProjectsData: ProjectInput[] = [
     year: "",
     role: ["Portfolio", "Selection de créations numérique"],
     intro:
-      "Une sélection de créations numériques, de mapping vidéo, d'installations interactives et d'expérimentations visuelles.",
+      "L'image comme terrain d'expérimentation. Une sélection de créations numériques : mapping vidéo, installations interactives et essais visuels.",
     cover: "/images/star-wars-2.png",
     coverPosition: "center",
     detailCoverPosition: "center",

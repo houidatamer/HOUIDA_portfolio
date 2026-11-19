@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CreativeField } from "@/components/CreativeField";
 import { IntroSequence } from "@/components/IntroSequence";
 import { GalleryRow } from "@/components/GalleryRow";
-import { projects } from "@/data/projects";
+import { back, projects } from "@/data/projects";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -29,6 +29,11 @@ const DISCIPLINES = [
 function Index() {
   const workRef = useRef<HTMLElement>(null);
   const [activeCluster, setActiveCluster] = useState<number | null>(null);
+  const [isReturning, setIsReturning] = useState<boolean>(() => !!(back.rect && back.slug));
+
+  const handleReturnStateChange = useCallback((returning: boolean) => {
+    setIsReturning(returning);
+  }, []);
 
   useEffect(() => {
     projects.forEach((p) => {
@@ -47,7 +52,11 @@ function Index() {
       <IntroSequence onComplete={() => {}} />
 
       {/* Hero Section */}
-      <section className="grid-4 relative max-md:!h-auto max-md:!max-h-none max-md:!overflow-visible overflow-x-hidden bg-white pt-[115px] md:pt-[120px] pb-4 md:pb-2 flex flex-col justify-start md:grid md:grid-cols-4 md:items-end">
+      <section
+        className={`grid-4 relative max-md:!h-auto max-md:!max-h-none max-md:!overflow-visible overflow-x-hidden bg-white pt-[115px] md:pt-[120px] pb-4 md:pb-2 flex flex-col justify-start md:grid md:grid-cols-4 md:items-end transition-opacity duration-300 ${
+          isReturning ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
         {/* Left Editorial Column */}
         <div className="relative z-20 col-span-2 flex flex-col justify-start md:justify-end py-2 md:py-0 px-4 md:pl-12 md:pb-[28px] bg-white md:bg-transparent order-1">
           <div className="w-full max-w-[500px]">
@@ -118,7 +127,7 @@ function Index() {
         ref={workRef}
         className="flex max-md:!h-auto md:h-dvh flex-col justify-start md:justify-center overflow-hidden bg-white pb-8 md:pb-5 pt-6 md:pt-0"
       >
-        <GalleryRow ready={true} />
+        <GalleryRow ready={true} onReturnStateChange={handleReturnStateChange} />
         <p className="ui-text px-4 pt-3 text-muted-foreground md:hidden">Swipe →</p>
       </section>
     </main>
